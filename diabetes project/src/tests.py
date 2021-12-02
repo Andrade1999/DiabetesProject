@@ -7,8 +7,7 @@ from sklearn.metrics import mean_squared_error
 from math import sqrt
 from matplotlib import pyplot
 from builtins import len
-#from statsmodels.sandbox.nonparametric.tests.ex_gam_am_new import order
-
+import os
 def load_data(csv_file):
     '''
     csv_file: file path of patient's data
@@ -182,93 +181,97 @@ if __name__ == "__main__":
         test.append(extract_valid_sequences(test_dataset[x], min_len=144))
     # The sequences contain missing measurements at some time steps due to sensor and/or user errors or off-time.
     # We only select sequences without any interruption for at least half a day (144 5-minute steps = 12h)
-    
-    #Starting with the first patient [0]
-    
-    
-    #TODO: implement ARIMA to predict on the testset
-
-    
-    #Print of the fit summary
-    #print(model_fit.summary())
-    
-    ######################
-    #This checks for bias in the prediction -> what does this mean
-    ######################
-    #line plot of residuals
-    # residuals = pd.DataFrame(model_fit.resid)
-    # residuals.plot()
-    # pyplot.show()
-    # #density plot of residuals
-    # residuals.plot(kind='kde')
-    # pyplot.show()
-    # # summary stats of residuals
-    # print(residuals.describe())
+      
     r_sensitivity = []
     r_specificity = []
     r_RMSE = []
     r_performance = []
-    textfile = open("Results.txt", "w")
-    for x in range(len(testpaths)):
-        textfile.write("\nResults Patient" + str(x) + "\n")
-        print("Start Model")
-        model = ARIMA(train[x], order = (1, 0, 10))
-        model_fit = model.fit()
+    #differente p
+    for i in range(1, 11):
+        odr = (i, 0, 10)
+        os.mkdir("Results"+str(odr))
+        textfile = open("Results/Results_order" + str(odr) + ".txt", "w")
+        for x in range(len(testpaths)):
+            textfile.write("\nResults Patient" + str(x) + "\n")
+            print("Start Model")
+            model = ARIMA(train[x], order = odr)
+            model_fit = model.fit()
+            
+            print("Out of Sample Forecast :" + str(x))
+            predictions_p = model_fit.predict(start = np.size(train[x]), end = np.size(train[x]) +  prediction_horizon - 1)
+            targets = test[x][0:prediction_horizon]
+            print(targets)
+            
+            print(np.size(targets))
+            print(np.size(predictions_p))
         
-        print("Out of Sample Forecast :" + str(x))
-        predictions_f = model_fit.forecast(steps = prediction_horizon)#check parameters and in sample  
-        predictions_p = model_fit.predict(start = np.size(train[x]), end = np.size(train[x]) +  prediction_horizon - 1)
-        targets = test[x][0:prediction_horizon]
-        print(targets)
-        
-        print(np.size(predictions_f))
-        print(np.size(targets))
-        print(np.size(predictions_p))
+            RMSE_p = sqrt(mean_squared_error(targets, predictions_p))
+            print('Test RMSE P: %.3f' % RMSE_p)
+            textfile.write("RSME_P: " + str(RMSE_p) + "\n")
     
-        RMSE_f = sqrt(mean_squared_error(targets, predictions_f))
-        print('Test RMSE F: %.3f' % RMSE_f)
-        textfile.write("RSME_F: " + str(RMSE_f) + "\n")
+            Performance_p = rmse(targets, predictions_p)
+            print('Test Performance P: %.3f' % Performance_p)
+            textfile.write("Performance_P: " + str(Performance_p) + "\n")
+            
+            pyplot.close()
+            pyplot.plot(targets)
+            pyplot.plot(predictions_p, color = 'red')
+            pyplot.savefig('Results'+str(odr)+'/img_' + str(x) + '.png')
         
-        Performance_f = rmse(targets, predictions_f)
-        print('Test Performance F: %.3f' % Performance_f)
-        textfile.write("Performance_F: " + str(Performance_f) + "\n")
-
-        RMSE_p = sqrt(mean_squared_error(targets, predictions_p))
-        print('Test RMSE P: %.3f' % RMSE_p)
-        textfile.write("RSME_P: " + str(RMSE_p) + "\n")
-
-        Performance_p = rmse(targets, predictions_p)
-        print('Test Performance P: %.3f' % Performance_p)
-        textfile.write("Performance_P: " + str(Performance_p) + "\n")
+            # TODO: implement a function that returns a binary squence, indicating if we are in a hypo-event (1) or not (0)            
+            gt_event_masks = get_hypo_event(targets, threshold=threshold)
+            pred_event_mask = get_hypo_event(predictions_p, threshold=threshold)
+            
+            #check if we have a hypo event in the ground truth
+            if np.max(gt_event_masks) == 1:
+                sensitivity, specificity = metrics(gt_event_masks, pred_event_mask)
+                print('sensitivity P: {}\nspecificity P: {}'.format(sensitivity, specificity))
+                textfile.write("Sensitivity_P: " + str(sensitivity) + "Specificity_P: " + str(specificity) + "\n")
+            else:
+                print('patient did not have any phase in GT below {}mg/dl'.format(threshold))
+                textfile.write("Sensitivity_P: NA, Specificity_P: NA\n")
+                
+    for i in range(10, 35):
+        odr = (1, 0, i)
+        os.mkdir("Results"+str(odr))
+        textfile = open("Results/Results_order" + str(odr) + ".txt", "w")
+        for x in range(len(testpaths)):
+            textfile.write("\nResults Patient" + str(x) + "\n")
+            print("Start Model")
+            model = ARIMA(train[x], order = odr)
+            model_fit = model.fit()
+            
+            print("Out of Sample Forecast :" + str(x))
+            predictions_p = model_fit.predict(start = np.size(train[x]), end = np.size(train[x]) +  prediction_horizon - 1)
+            targets = test[x][0:prediction_horizon]
+            print(targets)
+            
+            print(np.size(targets))
+            print(np.size(predictions_p))
         
-        pyplot.close()
-        pyplot.plot(targets)
-        pyplot.plot(predictions_f, color = 'red')
-        pyplot.plot(predictions_p, color = 'green')
-        pyplot.savefig('Images/img_' + str(x) + '.png')
+            RMSE_p = sqrt(mean_squared_error(targets, predictions_p))
+            print('Test RMSE P: %.3f' % RMSE_p)
+            textfile.write("RSME_P: " + str(RMSE_p) + "\n")
     
-        # TODO: implement a function that returns a binary squence, indicating if we are in a hypo-event (1) or not (0)
-        gt_event_masks = get_hypo_event(targets, threshold=threshold)
-        pred_event_mask = get_hypo_event(predictions_f, threshold=threshold)
+            Performance_p = rmse(targets, predictions_p)
+            print('Test Performance P: %.3f' % Performance_p)
+            textfile.write("Performance_P: " + str(Performance_p) + "\n")
+            
+            pyplot.close()
+            pyplot.plot(targets)
+            pyplot.plot(predictions_p, color = 'red')
+            pyplot.savefig('Results'+str(odr)+'/img_' + str(x) + '.png')
         
-        #check if we have a hypo event in the ground truth
-        if np.max(gt_event_masks) == 1:
-            sensitivity, specificity = metrics(gt_event_masks, pred_event_mask)
-            textfile.write("Sensitivity_F: " + str(sensitivity) + "Specificity_F: " + str(specificity) + "\n")
-            print('sensitivity F: {}\nspecificity F: {}'.format(sensitivity, specificity))
-        else:
-            print('patient did not have any phase in GT below {}mg/dl'.format(threshold))
-            textfile.write("Sensitivity_F: NA, Specificity_F: NA\n")
+            # TODO: implement a function that returns a binary squence, indicating if we are in a hypo-event (1) or not (0)            
+            gt_event_masks = get_hypo_event(targets, threshold=threshold)
+            pred_event_mask = get_hypo_event(predictions_p, threshold=threshold)
+            
+            #check if we have a hypo event in the ground truth
+            if np.max(gt_event_masks) == 1:
+                sensitivity, specificity = metrics(gt_event_masks, pred_event_mask)
+                print('sensitivity P: {}\nspecificity P: {}'.format(sensitivity, specificity))
+                textfile.write("Sensitivity_P: " + str(sensitivity) + "Specificity_P: " + str(specificity) + "\n")
+            else:
+                print('patient did not have any phase in GT below {}mg/dl'.format(threshold))
+                textfile.write("Sensitivity_P: NA, Specificity_P: NA\n")
         
-        gt_event_masks = get_hypo_event(targets, threshold=threshold)
-        pred_event_mask = get_hypo_event(predictions_p, threshold=threshold)
-        
-        #check if we have a hypo event in the ground truth
-        if np.max(gt_event_masks) == 1:
-            sensitivity, specificity = metrics(gt_event_masks, pred_event_mask)
-            print('sensitivity P: {}\nspecificity P: {}'.format(sensitivity, specificity))
-            textfile.write("Sensitivity_P: " + str(sensitivity) + "Specificity_P: " + str(specificity) + "\n")
-        else:
-            print('patient did not have any phase in GT below {}mg/dl'.format(threshold))
-            textfile.write("Sensitivity_P: NA, Specificity_P: NA\n")
-    

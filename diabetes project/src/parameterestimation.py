@@ -1,12 +1,9 @@
 ######################################################################ARIMA#######################################################################3
 import numpy as np
 import pandas as pd
-from glob import glob
-from statsmodels.tsa.arima.model import ARIMA
-from sklearn.metrics import mean_squared_error
-from math import sqrt
 from matplotlib import pyplot
 from statsmodels.tsa.stattools import adfuller
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 #from statsmodels.sandbox.nonparametric.tests.ex_gam_am_new import order
 
 def load_data(csv_file):
@@ -41,8 +38,8 @@ def extract_valid_sequences(data, min_len=144):
 
 if __name__ == "__main__":
     
-    patient_root = "540-ws-training_processed.csv"  # TODO: path to csv file
-    patient_root_test ="540-ws-testing_processed.csv" # TODO: path to csv file
+    patient_root = "552-ws-training_processed.csv"  # TODO: path to csv file
+    patient_root_test ="552-ws-testing_processed.csv" # TODO: path to csv file
 
     train_dataset = load_data(csv_file=patient_root)
     test_dataset = load_data(csv_file=patient_root_test)
@@ -70,10 +67,13 @@ if __name__ == "__main__":
     print(train)
     print(test)
     
-    #Check for d
+    #Partial Auto correlation plot, check for p
+    plot_pacf(train)
+    pyplot.show()
+        
+    #Check for q
     pd.plotting.autocorrelation_plot(train)
     pyplot.show()
     
-    pd.plotting.autocorrelation_plot(test)
+    plot_acf(train)
     pyplot.show()
-      
