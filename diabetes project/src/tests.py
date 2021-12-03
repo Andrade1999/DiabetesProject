@@ -153,6 +153,9 @@ def metrics(gt_events, pred_events):
 
     return sensitivity, specificity
 
+def avg(lst):
+    return sum(lst)/len(lst)
+
 def rmse(x,y):
     error = (x-y)*400 # scale up the output
     squared_error = np.square(error)
@@ -189,9 +192,11 @@ if __name__ == "__main__":
     #differente p
     for i in range(1, 11):
         odr = (i, 0, 10)
-        os.mkdir("Results"+str(odr))
-        textfile = open("Results/Results_order" + str(odr) + ".txt", "w")
+        print(odr)
+        os.mkdir("Results_p"+str(odr))
+        textfile = open("Results_p" + str(odr) + "/Results_order" + str(odr) + ".txt", "w")
         for x in range(len(testpaths)):
+            print(str(odr) + str(x))
             textfile.write("\nResults Patient" + str(x) + "\n")
             print("Start Model")
             model = ARIMA(train[x], order = odr)
@@ -216,7 +221,7 @@ if __name__ == "__main__":
             pyplot.close()
             pyplot.plot(targets)
             pyplot.plot(predictions_p, color = 'red')
-            pyplot.savefig('Results'+str(odr)+'/img_' + str(x) + '.png')
+            pyplot.savefig('Results_p'+str(odr)+'/img_' + str(x) + '.png')
         
             # TODO: implement a function that returns a binary squence, indicating if we are in a hypo-event (1) or not (0)            
             gt_event_masks = get_hypo_event(targets, threshold=threshold)
@@ -227,14 +232,31 @@ if __name__ == "__main__":
                 sensitivity, specificity = metrics(gt_event_masks, pred_event_mask)
                 print('sensitivity P: {}\nspecificity P: {}'.format(sensitivity, specificity))
                 textfile.write("Sensitivity_P: " + str(sensitivity) + "Specificity_P: " + str(specificity) + "\n")
+                r_sensitivity.append(sensitivity)
+                r_specificity.append(specificity)
             else:
                 print('patient did not have any phase in GT below {}mg/dl'.format(threshold))
                 textfile.write("Sensitivity_P: NA, Specificity_P: NA\n")
-                
+                r_sensitivity.append('NA')
+                r_specificity.append('NA')
+            r_RMSE.append(RMSE_p)
+            r_performance.append(Performance_p)
+            textfile.write("Sensitivity Array: " + str(r_sensitivity) + "\n")
+            textfile.write("Specificity Array: " + str(r_specificity) + "\n")
+            textfile.write("RMSE Array: " + str(r_RMSE) + "\n")
+            textfile.write("Performance Array: " + str(r_performance) + "\n")
+            textfile.write("Average RMSE: " + str(avg(r_RMSE)) + "\nAverage Performance: " + str(avg(r_performance)))
+            
+    r_sensitivity = []
+    r_specificity = []
+    r_RMSE = []
+    r_performance = []   
+         
     for i in range(10, 35):
         odr = (1, 0, i)
-        os.mkdir("Results"+str(odr))
-        textfile = open("Results/Results_order" + str(odr) + ".txt", "w")
+        print(odr)
+        os.mkdir("Results_q"+str(odr))
+        textfile = open("Results_q/Results_order" + str(odr) + ".txt", "w")
         for x in range(len(testpaths)):
             textfile.write("\nResults Patient" + str(x) + "\n")
             print("Start Model")
@@ -260,7 +282,7 @@ if __name__ == "__main__":
             pyplot.close()
             pyplot.plot(targets)
             pyplot.plot(predictions_p, color = 'red')
-            pyplot.savefig('Results'+str(odr)+'/img_' + str(x) + '.png')
+            pyplot.savefig('Results_q'+str(odr)+'/img_' + str(x) + '.png')
         
             # TODO: implement a function that returns a binary squence, indicating if we are in a hypo-event (1) or not (0)            
             gt_event_masks = get_hypo_event(targets, threshold=threshold)
@@ -271,7 +293,17 @@ if __name__ == "__main__":
                 sensitivity, specificity = metrics(gt_event_masks, pred_event_mask)
                 print('sensitivity P: {}\nspecificity P: {}'.format(sensitivity, specificity))
                 textfile.write("Sensitivity_P: " + str(sensitivity) + "Specificity_P: " + str(specificity) + "\n")
+                r_sensitivity.append(sensitivity)
+                r_specificity.append(specificity)
             else:
                 print('patient did not have any phase in GT below {}mg/dl'.format(threshold))
                 textfile.write("Sensitivity_P: NA, Specificity_P: NA\n")
-        
+                r_sensitivity.append('NA')
+                r_specificity.append('NA')
+            r_RMSE.append(RMSE_p)
+            r_performance.append(Performance_p)
+            textfile.write("Sensitivity Array: " + str(r_sensitivity) + "\n")
+            textfile.write("Specificity Array: " + str(r_specificity) + "\n")
+            textfile.write("RMSE Array: " + str(r_RMSE) + "\n")
+            textfile.write("Performance Array: " + str(r_performance) + "\n")
+            textfile.write("Average RMSE: " + str(avg(r_RMSE)) + "\nAverage Performance: " + str(avg(r_performance)))
