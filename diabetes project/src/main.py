@@ -7,6 +7,7 @@ from sklearn.metrics import mean_squared_error
 from math import sqrt
 from matplotlib import pyplot
 from builtins import len
+import os
 #from statsmodels.sandbox.nonparametric.tests.ex_gam_am_new import order
 
 def load_data(csv_file):
@@ -161,8 +162,10 @@ def rmse(x,y):
     root_mean_squared_error = np.sqrt(mean_squared_error)
     return root_mean_squared_error
 
+def avg(lst):
+    return sum(lst)/len(lst)
+
 if __name__ == "__main__":
-    prediction_horizon = 12  # 30 minutes ahead in time
     threshold = 70  # threshold for hypoglycemic events
     
     patient_root = "540-ws-training_processed.csv"  # TODO: path to csv file
@@ -184,7 +187,6 @@ if __name__ == "__main__":
     # We only select sequences without any interruption for at least half a day (144 5-minute steps = 12h)
     
     #Starting with the first patient [0]
-    
     
     #TODO: implement ARIMA to predict on the testset
 
@@ -209,29 +211,21 @@ if __name__ == "__main__":
     r_RMSE = []
     r_performance = []
     textfile = open("Results.txt", "w")
+    os.mkdir("Images")
     for x in range(len(testpaths)):
+        prediction_horizon = 6
         textfile.write("\nResults Patient" + str(x) + "\n")
         print("Start Model")
-        model = ARIMA(train[x], order = (1, 0, 10))
+        model = ARIMA(train[x], order = (1, 1, 10))
         model_fit = model.fit()
-        
+        print(model_fit.summary())
         print("Out of Sample Forecast :" + str(x))
-        predictions_f = model_fit.forecast(steps = prediction_horizon)#check parameters and in sample  
         predictions_p = model_fit.predict(start = np.size(train[x]), end = np.size(train[x]) +  prediction_horizon - 1)
         targets = test[x][0:prediction_horizon]
         print(targets)
         
-        print(np.size(predictions_f))
         print(np.size(targets))
         print(np.size(predictions_p))
-    
-        RMSE_f = sqrt(mean_squared_error(targets, predictions_f))
-        print('Test RMSE F: %.3f' % RMSE_f)
-        textfile.write("RSME_F: " + str(RMSE_f) + "\n")
-        
-        Performance_f = rmse(targets, predictions_f)
-        print('Test Performance F: %.3f' % Performance_f)
-        textfile.write("Performance_F: " + str(Performance_f) + "\n")
 
         RMSE_p = sqrt(mean_squared_error(targets, predictions_p))
         print('Test RMSE P: %.3f' % RMSE_p)
@@ -243,22 +237,8 @@ if __name__ == "__main__":
         
         pyplot.close()
         pyplot.plot(targets)
-        pyplot.plot(predictions_f, color = 'red')
-        pyplot.plot(predictions_p, color = 'green')
+        pyplot.plot(predictions_p, color = 'red')
         pyplot.savefig('Images/img_' + str(x) + '.png')
-    
-        # TODO: implement a function that returns a binary squence, indicating if we are in a hypo-event (1) or not (0)
-        gt_event_masks = get_hypo_event(targets, threshold=threshold)
-        pred_event_mask = get_hypo_event(predictions_f, threshold=threshold)
-        
-        #check if we have a hypo event in the ground truth
-        if np.max(gt_event_masks) == 1:
-            sensitivity, specificity = metrics(gt_event_masks, pred_event_mask)
-            textfile.write("Sensitivity_F: " + str(sensitivity) + "Specificity_F: " + str(specificity) + "\n")
-            print('sensitivity F: {}\nspecificity F: {}'.format(sensitivity, specificity))
-        else:
-            print('patient did not have any phase in GT below {}mg/dl'.format(threshold))
-            textfile.write("Sensitivity_F: NA, Specificity_F: NA\n")
         
         gt_event_masks = get_hypo_event(targets, threshold=threshold)
         pred_event_mask = get_hypo_event(predictions_p, threshold=threshold)
@@ -268,7 +248,19 @@ if __name__ == "__main__":
             sensitivity, specificity = metrics(gt_event_masks, pred_event_mask)
             print('sensitivity P: {}\nspecificity P: {}'.format(sensitivity, specificity))
             textfile.write("Sensitivity_P: " + str(sensitivity) + "Specificity_P: " + str(specificity) + "\n")
+            r_sensitivity.append(sensitivity)
+            r_specificity.append(specificity)
         else:
             print('patient did not have any phase in GT below {}mg/dl'.format(threshold))
             textfile.write("Sensitivity_P: NA, Specificity_P: NA\n")
+            r_specificity.append('NA')
+            r_sensitivity.append('NA')
+        r_RMSE.append(RMSE_p)
+        r_performance.append(Performance_p)
+    textfile.write("\nSensitivity Array: " + str(r_sensitivity) + "\n")
+    textfile.write("Specificity Array: " + str(r_specificity) + "\n")
+    textfile.write("RMSE Array: " + str(r_RMSE) + "\n")
+    textfile.write("Performance Array: " + str(r_performance) + "\n")
+    textfile.write("Average RMSE: " + str(avg(r_RMSE)) + "\nAverage Performance: " + str(avg(r_performance)) + "\n")
+
     

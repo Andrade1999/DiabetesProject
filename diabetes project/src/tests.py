@@ -167,8 +167,6 @@ if __name__ == "__main__":
     prediction_horizon = 12  # 30 minutes ahead in time
     threshold = 70  # threshold for hypoglycemic events
     
-    patient_root = "540-ws-training_processed.csv"  # TODO: path to csv file
-    patient_root_test ="540-ws-testing_processed.csv" # TODO: path to csv file
     testpaths = glob('*-ws-testing_processed.csv')
     trainpaths = glob('*-ws-training_processed.csv')
     print(testpaths)
@@ -185,12 +183,12 @@ if __name__ == "__main__":
     # The sequences contain missing measurements at some time steps due to sensor and/or user errors or off-time.
     # We only select sequences without any interruption for at least half a day (144 5-minute steps = 12h)
       
-    r_sensitivity = []
-    r_specificity = []
-    r_RMSE = []
-    r_performance = []
-    #differente p
+    #different p
     for i in range(1, 11):
+        r_sensitivity = []
+        r_specificity = []
+        r_RMSE = []
+        r_performance = [] 
         odr = (i, 0, 10)
         print(odr)
         os.mkdir("Results_p"+str(odr))
@@ -241,23 +239,23 @@ if __name__ == "__main__":
                 r_specificity.append('NA')
             r_RMSE.append(RMSE_p)
             r_performance.append(Performance_p)
-            textfile.write("Sensitivity Array: " + str(r_sensitivity) + "\n")
-            textfile.write("Specificity Array: " + str(r_specificity) + "\n")
-            textfile.write("RMSE Array: " + str(r_RMSE) + "\n")
-            textfile.write("Performance Array: " + str(r_performance) + "\n")
-            textfile.write("Average RMSE: " + str(avg(r_RMSE)) + "\nAverage Performance: " + str(avg(r_performance)))
-            
-    r_sensitivity = []
-    r_specificity = []
-    r_RMSE = []
-    r_performance = []   
+        textfile.write("Sensitivity Array: " + str(r_sensitivity) + "\n")
+        textfile.write("Specificity Array: " + str(r_specificity) + "\n")
+        textfile.write("RMSE Array: " + str(r_RMSE) + "\n")
+        textfile.write("Performance Array: " + str(r_performance) + "\n")
+        textfile.write("Average RMSE: " + str(avg(r_RMSE)) + "\nAverage Performance: " + str(avg(r_performance)) + "\n")  
          
     for i in range(10, 35):
+        r_sensitivity = []
+        r_specificity = []
+        r_RMSE = []
+        r_performance = [] 
         odr = (1, 0, i)
         print(odr)
         os.mkdir("Results_q"+str(odr))
-        textfile = open("Results_q/Results_order" + str(odr) + ".txt", "w")
+        textfile = open("Results_q" + str(odr) + "/Results_order" + str(odr) + ".txt", "w")
         for x in range(len(testpaths)):
+            print(str(odr) + str(x))
             textfile.write("\nResults Patient" + str(x) + "\n")
             print("Start Model")
             model = ARIMA(train[x], order = odr)
@@ -302,8 +300,8 @@ if __name__ == "__main__":
                 r_specificity.append('NA')
             r_RMSE.append(RMSE_p)
             r_performance.append(Performance_p)
-            textfile.write("Sensitivity Array: " + str(r_sensitivity) + "\n")
-            textfile.write("Specificity Array: " + str(r_specificity) + "\n")
-            textfile.write("RMSE Array: " + str(r_RMSE) + "\n")
-            textfile.write("Performance Array: " + str(r_performance) + "\n")
-            textfile.write("Average RMSE: " + str(avg(r_RMSE)) + "\nAverage Performance: " + str(avg(r_performance)))
+        textfile.write("Sensitivity Array: " + str(r_sensitivity) + "\n")
+        textfile.write("Specificity Array: " + str(r_specificity) + "\n")
+        textfile.write("RMSE Array: " + str(r_RMSE) + "\n")
+        textfile.write("Performance Array: " + str(r_performance) + "\n")
+        textfile.write("Average RMSE: " + str(avg(r_RMSE)) + "\nAverage Performance: " + str(avg(r_performance)) + "\n")

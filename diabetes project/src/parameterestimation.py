@@ -4,6 +4,8 @@ import pandas as pd
 from matplotlib import pyplot
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+from glob import glob
+import os
 #from statsmodels.sandbox.nonparametric.tests.ex_gam_am_new import order
 
 def load_data(csv_file):
@@ -38,42 +40,45 @@ def extract_valid_sequences(data, min_len=144):
 
 if __name__ == "__main__":
     
-    patient_root = "552-ws-training_processed.csv"  # TODO: path to csv file
-    patient_root_test ="552-ws-testing_processed.csv" # TODO: path to csv file
-
-    train_dataset = load_data(csv_file=patient_root)
-    test_dataset = load_data(csv_file=patient_root_test)
-    
-    
-    # The sequences contain missing measurements at some time steps due to sensor and/or user errors or off-time.
-    # We only select sequences without any interruption for at least half a day (144 5-minute steps = 12h)
-    train = extract_valid_sequences(train_dataset, min_len=144)
-    test = extract_valid_sequences(test_dataset, min_len=144)
+    testpaths = glob('*-ws-testing_processed.csv')
+    trainpaths = glob('*-ws-training_processed.csv')
+    print(testpaths)
+    print(trainpaths)
+    train_dataset = []
+    test_dataset = []
+    train = []
+    test = []
+    for x in range(len(testpaths)):
+        train_dataset.append(load_data(csv_file=trainpaths[x]))
+        test_dataset.append(load_data(csv_file=testpaths[x]))
+        train.append(extract_valid_sequences(train_dataset[x], min_len=144))
+        test.append(extract_valid_sequences(test_dataset[x], min_len=144))
+    os.mkdir("Parameters")
+    textfile = open("Parameters/Parameters.txt", "w")
+    for x in range(len(testpaths)):
+        textfile.write("\nPatient: " + str(x) + "\n")
     #Check if stationary (p value > 0,05)
-    statresulttrain = adfuller(train)
-    print((statresulttrain[0]))
-    print((statresulttrain[1]))
-    
-    statresulttest = adfuller(test)
-    print((statresulttest[0]))
-    print((statresulttest[1]))
-    
-    pyplot.plot(train)
-    pyplot.show()
-    
-    pyplot.plot(test)
-    pyplot.show()
-    
-    print(train)
-    print(test)
-    
-    #Partial Auto correlation plot, check for p
-    plot_pacf(train)
-    pyplot.show()
+        statresulttrain = adfuller(train[x])
+        print((statresulttrain[0]))
+        print((statresulttrain[1]))
+        textfile.write("Dif Train 1 :" + str(statresulttrain[0]) + "Dif Train 2: " + str(statresulttrain[1]) + "\n")
         
-    #Check for q
-    pd.plotting.autocorrelation_plot(train)
-    pyplot.show()
-    
-    plot_acf(train)
-    pyplot.show()
+        statresulttest = adfuller(test[x])
+        print((statresulttest[0]))
+        print((statresulttest[1]))
+        textfile.write("Dif Test 1 :" + str(statresulttest[0]) + "Dif Test 2: " + str(statresulttest[1]) + "\n")
+        
+        pyplot.plot(train[x])
+        pyplot.savefig("Parameters/patient_" + str(x) + "train.jpg")
+        
+        pyplot.plot(test[x])
+        pyplot.savefig("Parameters/patient_" + str(x) + "test.jpg")
+
+        #Partial Auto correlation plot, check for p
+        plot_pacf(train[x])
+        pyplot.savefig("Parameters/patient_" + str(x) + "pacf.jpg")
+
+            
+        #Check for q
+        plot_acf(train[x])
+        pyplot.savefig("Parameters/patient_" + str(x) + "acf.jpg")
