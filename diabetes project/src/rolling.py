@@ -225,15 +225,14 @@ if __name__ == "__main__":
             model_fit = model.fit()
             #print(model_fit.summary())
             print("Out of Sample Forecast :" + str(x))
-            predictions_p = model_fit.predict(start = np.size(history), end = np.size(history) +  prediction_horizon - 1) #predict next 6 timesteps
+            predictions_p = model_fit.forecast(steps = 6) #predict next 6 timesteps
             for z in predictions_p:
                 predictions.append(z)
-            np.append(history,test[j:prediction_horizon])
-            print((predictions_p))
-            print((predictions))
+            np.append(history,test[x][j:j + prediction_horizon])
+            print(np.size(predictions))
 
             textfile.write(str(j) + "\n")
-            textfile.write("Test " + str(test[j:prediction_horizon]) + "\n")
+            textfile.write("Test " + str(test[x][j:j + prediction_horizon]) + "\n")
             textfile.write("Pred " + str(predictions_p) + "\n\n")
                 
         textfile.write("\nResults Patient" + str(x) + "\n")
@@ -251,10 +250,11 @@ if __name__ == "__main__":
         print('Test Performance P: %.3f' % Performance_p)
         textfile.write("Performance_P: " + str(Performance_p) + "\n")
         
+        os.mkdir("Images_Rolling");
         pyplot.close()
         pyplot.plot(targets)
         pyplot.plot(predictions, color = 'red')
-        pyplot.savefig('Images/img_' + str(x) + '.png')
+        pyplot.savefig('Images_Rolling/img_' + str(x) + '.png')
         
         gt_event_masks = get_hypo_event(targets, threshold=threshold)
         pred_event_mask = get_hypo_event(predictions, threshold=threshold)

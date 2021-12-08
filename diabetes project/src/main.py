@@ -149,7 +149,6 @@ def metrics(gt_events, pred_events):
     fn_events = np.bitwise_and(np.bitwise_not(tp_events_mask.astype(bool)) * 1, fn_events)
     fn_events = np.convolve(fn_events, np.asarray([1, -1]))
     fn = len(np.where(fn_events == 1)[0])
-
     sensitivity = tp / (tp + fn)
     specificity = tn / (tn + fp)
 
@@ -206,7 +205,9 @@ if __name__ == "__main__":
     # pyplot.show()
     # # summary stats of residuals
     # print(residuals.describe())
-    r_sensitivity = []
+    
+    ##arrays to store every patient's results
+    r_sensitivity = [] 
     r_specificity = []
     r_RMSE = []
     r_performance = []
@@ -216,12 +217,12 @@ if __name__ == "__main__":
         prediction_horizon = 6
         textfile.write("\nResults Patient" + str(x) + "\n")
         print("Start Model")
-        model = ARIMA(train[x], order = (1, 1, 10))
-        model_fit = model.fit()
+        model = ARIMA(train[x], order = (1, 2, 10))
+        model_fit = model.fit() #fit the model
         print(model_fit.summary())
         print("Out of Sample Forecast :" + str(x))
-        predictions_p = model_fit.predict(start = np.size(train[x]), end = np.size(train[x]) +  prediction_horizon - 1)
-        targets = test[x][0:prediction_horizon]
+        predictions_p = model_fit.forecast(steps = 6) #predict 6 steps into the future
+        targets = test[x][0:prediction_horizon] #test 6 steps into the future
         print(targets)
         
         print(np.size(targets))
@@ -238,7 +239,7 @@ if __name__ == "__main__":
         pyplot.close()
         pyplot.plot(targets)
         pyplot.plot(predictions_p, color = 'red')
-        pyplot.savefig('Images/img_' + str(x) + '.png')
+        pyplot.savefig('Images/img_' + str(x) + '.png') #plot predicted and test
         
         gt_event_masks = get_hypo_event(targets, threshold=threshold)
         pred_event_mask = get_hypo_event(predictions_p, threshold=threshold)

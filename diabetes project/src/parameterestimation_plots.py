@@ -68,17 +68,20 @@ if __name__ == "__main__":
         print((statresulttest[1]))
         textfile.write("Dif Test 1 :" + str(statresulttest[0]) + "Dif Test 2: " + str(statresulttest[1]) + "\n")
         
+        pyplot.close()
         pyplot.plot(train[x])
         pyplot.savefig("Parameters/patient_" + str(x) + "train.jpg")
         
+        pyplot.close()
         pyplot.plot(test[x])
         pyplot.savefig("Parameters/patient_" + str(x) + "test.jpg")
 
         #Partial Auto correlation plot, check for p
+        pyplot.close()
         plot_pacf(train[x])
         pyplot.savefig("Parameters/patient_" + str(x) + "pacf.jpg")
 
-            
         #Check for q
+        pyplot.close()
         plot_acf(train[x])
         pyplot.savefig("Parameters/patient_" + str(x) + "acf.jpg")
