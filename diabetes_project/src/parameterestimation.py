@@ -80,14 +80,14 @@ if __name__ == "__main__":
         else:
             d = 0
             
-        #Partial Auto correlation plot, check for p
+        #Partial Auto correlation, check for p
         PACF = pacf(trainp, method='ywm')
         for i in range(len(PACF)):
             if (PACF[i] < 0.5):
                 p = i - 1
                 break;
     
-        #Autocorrelation plot, check for q
+        #Autocorrelation, check for q
         ACF = acf(trainp)
         for i in range(len(ACF)):
             if (ACF[i] < 0.5):
@@ -99,16 +99,24 @@ if __name__ == "__main__":
         
         pyplot.close()
         pyplot.plot(trainp)
+        pyplot.xlabel("Time Steps")
+        pyplot.ylabel("Normalized Blood Glucose (mg/dl)")
         pyplot.savefig("Parameters/patient_" + str(x) + "train.jpg")
         
         pyplot.close()
         pyplot.plot(test[x])
+        pyplot.xlabel("Time Steps")
+        pyplot.ylabel("Normalized Blood Glucose (mg/dl)")
         pyplot.savefig("Parameters/patient_" + str(x) + "test.jpg")
 
         pyplot.close()
         plot_pacf(trainp)
+        pyplot.xlabel("Lag")
+        pyplot.ylabel("Correlation")
         pyplot.savefig("Parameters/patient_" + str(x) + "pacf.jpg")
     
         pyplot.close()
         plot_acf(trainp)
+        pyplot.xlabel("Lag")
+        pyplot.ylabel("Correlation")
         pyplot.savefig("Parameters/patient_" + str(x) + "acf.jpg")
