@@ -1,5 +1,0 @@
-
-Results Patient2
-RSME_P: 0.05182488207539275
-Performance_P: 20.7299528301571
-Sensitivity_P: 1.0Specificity_P: 0.875

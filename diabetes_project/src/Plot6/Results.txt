@@ -1,0 +1,7 @@
+
+Sensitivity Array: [1.0]
+Specificity Array: [0.75]
+RMSE Array: [0.04526936681460853]
+Performance Array: [18.107746725843413]
+Average RMSE: 0.04526936681460853
+Average Performance: 18.107746725843413
