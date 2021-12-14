@@ -1,0 +1,6 @@
+
+Results Patient4
+RSME: 0.04526936681460853
+Performance: 18.107746725843413
+Sensitivity_P: 1.0
+Specificity_P: 0.75

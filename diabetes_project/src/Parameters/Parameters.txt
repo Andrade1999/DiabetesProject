@@ -1,0 +1,37 @@
+
+Patient: 0
+Dif Train 1 :-2.969281623972538Dif Train 2: 0.0378644037358859
+Order: (1, 0, 7)
+Patient: 1
+Dif Train 1 :-2.8087091502508086Dif Train 2: 0.05704045665151645
+Order: (1, 1, 1)
+Patient: 2
+Dif Train 1 :-1.6013448619756485Dif Train 2: 0.48291786586793756
+Order: (1, 1, 2)
+Patient: 3
+Dif Train 1 :-2.626101420316398Dif Train 2: 0.08772172994279664
+Order: (1, 1, 1)
+Patient: 4
+Dif Train 1 :-1.7749961134903463Dif Train 2: 0.39294416834358
+Order: (1, 1, 1)
+Patient: 5
+Dif Train 1 :-1.0888964494514748Dif Train 2: 0.7194794995809759
+Order: (1, 1, 2)
+Patient: 6
+Dif Train 1 :-2.121065824551589Dif Train 2: 0.23612872407836927
+Order: (0, 1, 0)
+Patient: 7
+Dif Train 1 :-1.8875932970929223Dif Train 2: 0.3379199352498232
+Order: (0, 1, 1)
+Patient: 8
+Dif Train 1 :-1.9190228786340462Dif Train 2: 0.32316574176971885
+Order: (0, 1, 1)
+Patient: 9
+Dif Train 1 :-1.8608582631158181Dif Train 2: 0.35069259180500334
+Order: (1, 1, 2)
+Patient: 10
+Dif Train 1 :-3.2331011841463395Dif Train 2: 0.018146844654350142
+Order: (1, 0, 7)
+Patient: 11
+Dif Train 1 :-1.7157584341850578Dif Train 2: 0.4230120922762485
+Order: (0, 1, 0)

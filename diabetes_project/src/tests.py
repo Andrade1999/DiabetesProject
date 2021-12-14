@@ -6,8 +6,8 @@ from statsmodels.tsa.arima.model import ARIMA
 from sklearn.metrics import mean_squared_error
 from math import sqrt
 from matplotlib import pyplot
-#from statsmodels.sandbox.nonparametric.tests.ex_gam_am_new import order
-
+from builtins import len
+import os
 def load_data(csv_file):
     '''
     csv_file: file path of patient's data
@@ -38,7 +38,7 @@ def extract_valid_sequences(data, min_len=144):
             i = i + 1
     return np.squeeze(np.concatenate(ValidData, axis=0))
 ####################################################
-#What does this do? prepare data probably uses several sequences?
+#What does this do?
 ####################################################
 def prepare_data(sequences, lookback, prediction_horizon, validation_split=None): 
     samples = []
@@ -153,82 +153,33 @@ def metrics(gt_events, pred_events):
 
     return sensitivity, specificity
 
+def avg(lst):
+    return sum(lst)/len(lst)
+
+def rmse(x,y):
+    error = (x-y)*400 # scale up the output
+    squared_error = np.square(error)
+    mean_squared_error = np.mean(squared_error)
+    root_mean_squared_error = np.sqrt(mean_squared_error)
+    return root_mean_squared_error
+
 if __name__ == "__main__":
-    prediction_horizon = 6  # 30 minutes ahead in time
+    prediction_horizon = 12  # 30 minutes ahead in time
     threshold = 70  # threshold for hypoglycemic events
-    patient_root = "596-ws-training_processed.csv"  # TODO: path to csv file
-    patient_root_test ="596-ws-testing_processed.csv" # TODO: path to csv file
+    
+    testpaths = glob('*-ws-testing_processed.csv')
+    trainpaths = glob('*-ws-training_processed.csv')
+    print(testpaths)
+    print(trainpaths)
+    train_dataset = []
+    test_dataset = []
+    train = []
+    test = []
+    for x in range(len(testpaths)):
+        train_dataset.append(load_data(csv_file=trainpaths[x]))
+        test_dataset.append(load_data(csv_file=testpaths[x]))
+        train.append(extract_valid_sequences(train_dataset[x], min_len=144))
+        test.append(extract_valid_sequences(test_dataset[x], min_len=144))
+    
 
-    train_dataset = load_data(csv_file=patient_root)
-    test_dataset = load_data(csv_file=patient_root_test)
-    # The sequences contain missing measurements at some time steps due to sensor and/or user errors or off-time.
-    # We only select sequences without any interruption for at least half a day (144 5-minute steps = 12h)
-    train = extract_valid_sequences(train_dataset, min_len=144)
-    test = extract_valid_sequences(test_dataset, min_len=144)
-    print(np.size(train))
-    print(test)
-    print(train.shape[0] > 12)
-    print("Splitting train")
-    train, targets = prepare_data(train, 6, prediction_horizon = 6)
-    print(np.size(train))
-    #pd.plotting.autocorrelation_plot(train)
-    #pyplot.show()
-    # TODO: implement ARIMA to predict on the testset
-    print("Start Model")
-    model = ARIMA(train, order = (40,1,0))
-    model_fit = model.fit()
-    
-    #Print of the fit summary
-    print(model_fit.summary())
-    
-    #
-    #######################
-    #This checks for bias in the prediction -> what does this mean
-    #######################
-    # line plot of residuals
-    #residuals = pd.DataFrame(model_fit.resid)
-    #residuals.plot()
-    #pyplot.show()
-    # density plot of residuals
-    #residuals.plot(kind='kde')
-    #pyplot.show()
-    # summary stats of residuals
-    #print(residuals.describe())
-    #
-    
-    #Out Sample Forecast, same files
-    print("Out of Sample Forecast, different files:")
-    predictions = model_fit.forecast(steps = np.size(targets))        
-
-    print(predictions)
-    print(targets)
-    print(np.size(predictions))
-    print(np.size(targets))
-    #print("Targets: " + targets)
-    #print("Predictions: " + predictions)
-    rmse = sqrt(mean_squared_error(targets, predictions))
-    print('Test RMSE: %.3f' % rmse)
-    
-    pyplot.plot(targets)
-    pyplot.plot(predictions, color = 'red')
-    pyplot.show()
-    
-    # TODO: implement a function that returns a binary squence, indicating if we are in a hypo-event (1) or not (0)
-    gt_event_masks = get_hypo_event(targets, threshold=threshold)
-    pred_event_mask = get_hypo_event(predictions, threshold=threshold)
-    
-    # check if we have a hypo event in the ground truth
-    if np.max(gt_event_masks) == 1:
-        sensitivity, specificity = metrics(gt_event_masks, pred_event_mask)
-        print('sensitivity: {}\nspecificity: {}'.format(sensitivity, specificity))
-    else:
-        print('patient did not have any phase in GT below {}mg/dl'.format(threshold))
-  #      sensitivity, specificity = metrics(gt_event_masks, pred_event_mask)
-  #      print('sensitivity: {}\nspecificity: {}'.format(sensitivity, specificity))
-  #  else:
-  #      print('patient did not have any phase in GT below {}mg/dl'.format(threshold))
-  
-  
-  
-  
-  
+         
